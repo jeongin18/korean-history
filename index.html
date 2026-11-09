@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>한국사2 수행평가 사전조사 도우미</title>
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1f2328; --muted:#5b6270; --line:#ddd8cc;
+  --accent:#1f4e79; --accent-soft:#e6eef6; --ok:#1d6b3a; --ok-soft:#e5f3ea;
+  --warn:#8a5a00; --warn-soft:#fdf1d8; --bad:#a1262b; --bad-soft:#fbe6e6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  font-size:17px;line-height:1.6}
+header{background:var(--accent);color:#fff;padding:18px 24px 0}
+header h1{margin:0;font-size:1.35rem;letter-spacing:-0.01em}
+header p{margin:4px 0 14px;font-size:.92rem;opacity:.9}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{border:0;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:1rem;
+  padding:10px 18px;border-radius:10px 10px 0 0;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--bg);color:var(--accent);font-weight:700}
+main{max-width:1060px;margin:0 auto;padding:22px 20px 60px}
+section[hidden]{display:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+h2{font-size:1.15rem;margin:0 0 10px}
+h3{font-size:1rem;margin:0 0 6px}
+.muted{color:var(--muted);font-size:.92rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input[type=text],input[type=date],select{font:inherit;padding:10px 12px;border:1px solid #b9b3a5;border-radius:8px;background:#fff;min-width:0}
+input[type=text]{flex:1 1 320px}
+button.btn{font:inherit;border:0;border-radius:8px;padding:10px 16px;background:var(--accent);color:#fff;cursor:pointer;font-weight:600}
+button.btn.sec{background:var(--accent-soft);color:var(--accent)}
+button.btn.small{padding:6px 12px;font-size:.9rem}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #f2b705;outline-offset:2px}
+.notice{border-radius:10px;padding:12px 16px;margin:10px 0}
+.notice.ok{background:var(--ok-soft);color:var(--ok)}
+.notice.warn{background:var(--warn-soft);color:var(--warn)}
+.notice.bad{background:var(--bad-soft);color:var(--bad)}
+.notice.info{background:var(--accent-soft);color:var(--accent)}
+.notice b{color:inherit}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.site{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff;display:flex;flex-direction:column;gap:6px}
+.site .org{font-size:.85rem;color:var(--muted)}
+.site .tip{font-size:.88rem;color:var(--muted)}
+.site .actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+.site a.go{display:inline-block;text-decoration:none;background:var(--accent);color:#fff;padding:7px 12px;border-radius:8px;font-weight:600;font-size:.92rem}
+.site a.go.copy{background:var(--warn-soft);color:var(--warn)}
+.group-title{margin:18px 0 8px;font-weight:700;color:var(--accent)}
+.tag{display:inline-block;font-size:.78rem;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:4px}
+.banned{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.banned span{background:var(--bad-soft);color:var(--bad);border-radius:99px;padding:3px 10px;font-size:.88rem;text-decoration:line-through}
+.result-name{font-size:1.3rem;font-weight:800;margin:4px 0}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.88rem;color:var(--muted);font-weight:600}
+td button.link{border:0;background:none;color:var(--accent);font:inherit;cursor:pointer;padding:0;text-align:left;text-decoration:underline}
+.out{font-family:inherit;font-size:1.05rem;background:#fbfaf6;border:1px dashed #b9b3a5;border-radius:8px;padding:12px 14px;min-height:48px;word-break:keep-all}
+.form-grid{display:grid;grid-template-columns:160px 1fr;gap:10px 12px;align-items:center}
+.form-grid label{font-weight:600;font-size:.95rem}
+@media (max-width:640px){.form-grid{grid-template-columns:1fr}}
+.check{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.check input{width:22px;height:22px;margin-top:3px;flex:none}
+.check .why{font-size:.88rem;color:var(--muted)}
+.chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font:inherit;font-size:.9rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:99px;font-size:.95rem;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+footer{max-width:1060px;margin:0 auto;padding:0 20px 30px;font-size:.82rem;color:var(--muted)}
+ul.list{margin:6px 0;padding-left:20px}
+</style>
+</head>
+<body>
+<header>
+  <h1>한국사2 수행평가 사전조사 도우미</h1>
+  <p>한국 근현대사 3대 사건 선정하기 · 조사 범위: <b>경술국치(1910) 이후 ~ 김대중 정부(2003. 2.)</b> · 교과서(동아출판) 안에서 선정</p>
+  <nav role="tablist" aria-label="기능 선택">
+    <button role="tab" id="t-search" aria-controls="p-search" aria-selected="true">① 자료 검색</button>
+    <button role="tab" id="t-event" aria-controls="p-event" aria-selected="false">② 사건 확인</button>
+    <button role="tab" id="t-cite" aria-controls="p-cite" aria-selected="false">③ 출처 만들기</button>
+    <button role="tab" id="t-check" aria-controls="p-check" aria-selected="false">④ 신뢰성 점검</button>
+  </nav>
+</header>
+
+<main>
+<!-- ① 자료 검색 -->
+<section id="p-search" role="tabpanel" aria-labelledby="t-search">
+  <div class="card">
+    <h2>검색어 한 번으로 믿을 수 있는 사이트만 찾기</h2>
+    <div class="row">
+      <input type="text" id="q" placeholder="예: 신간회, 6월 민주 항쟁, 새마을 운동" aria-label="검색어">
+      <button class="btn" id="q-go">검색 준비</button>
+    </div>
+    <p class="muted" style="margin:8px 0 0">검색어를 넣고 아래 사이트의 <b>검색 결과 열기</b>를 누르면 새 탭에서 열립니다. 사건명은 교과서 표기로 검색하는 것이 가장 정확해요.</p>
+    <div id="q-hint"></div>
+  </div>
+  <div class="card">
+    <h3>사용할 수 없는 자료 (감점 사유)</h3>
+    <div class="banned"><span>나무위키</span><span>위키백과 등 OO위키</span><span>네이버 지식iN</span><span>개인 블로그(네이버·티스토리 등)</span><span>카페·커뮤니티</span><span>유튜브</span><span>AI 챗봇 답변</span></div>
+    <p class="muted" style="margin:8px 0 0">AI가 써 준 요약(검색 사이트의 ‘AI 브리핑’ 포함)은 틀린 내용이 섞일 수 있으므로 출처로 쓰지 않습니다.</p>
+  </div>
+  <div id="sites"></div>
+</section>
+
+<!-- ② 사건 확인 -->
+<section id="p-event" role="tabpanel" aria-labelledby="t-event" hidden>
+  <div class="card">
+    <h2>내가 고른 사건, 써도 되는지 확인하기</h2>
+    <div class="row">
+      <input type="text" id="ev-q" placeholder="사건명을 입력하세요 (예: 광주 학생 운동, 부마항쟁)" aria-label="사건명">
+      <button class="btn" id="ev-go">확인</button>
+    </div>
+    <div id="ev-result" aria-live="polite"></div>
+  </div>
+  <div class="card">
+    <h2>교과서 속 사건 목록 <span class="muted" id="ev-count"></span></h2>
+    <p class="muted" style="margin-top:0">동아출판 『한국사2』 본문에서 뽑은 1910~2003년 사건입니다. 사건명을 누르면 자세히 볼 수 있어요.</p>
+    <div class="row" id="unit-chips" style="margin-bottom:10px"></div>
+    <div style="overflow-x:auto"><table id="ev-table"><thead><tr><th style="width:46%">교과서 표기</th><th>연도</th><th>단원</th><th>교과서</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<!-- ③ 출처 만들기 -->
+<section id="p-cite" role="tabpanel" aria-labelledby="t-cite" hidden>
+  <div class="card">
+    <h2>학교 양식에 맞는 출처 문장 만들기</h2>
+    <div class="row" id="cite-types" role="group" aria-label="자료 유형"></div>
+    <div class="form-grid" id="cite-form" style="margin-top:14px"></div>
+    <h3 style="margin-top:16px">완성된 출처</h3>
+    <div class="out" id="cite-out" aria-live="polite"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="cite-add">내 출처 목록에 담기</button>
+    </div>
+    <p class="muted" id="cite-example" style="margin-bottom:0"></p>
+  </div>
+  <div class="card">
+    <h2>내 출처 목록</h2>
+    <p class="muted" style="margin-top:0">사전조사서 ‘자료의 출처’ 칸에 직접 옮겨 적으세요. 이 목록은 이 창을 닫으면 사라질 수 있으니 바로바로 적어 두세요.</p>
+    <ol id="cite-list" class="list"></ol>
+    <div class="row"><button class="btn sec small" id="cite-clear">목록 비우기</button></div>
+  </div>
+</section>
+
+<!-- ④ 신뢰성 점검 -->
+<section id="p-check" role="tabpanel" aria-labelledby="t-check" hidden>
+  <div class="card">
+    <h2>이 자료, 사전조사서에 써도 될까?</h2>
+    <p class="muted" style="margin-top:0">자료 하나마다 아래 다섯 가지를 확인하세요. 모두 체크되어야 안심하고 쓸 수 있어요.</p>
+    <div class="row"><input type="text" id="ck-name" placeholder="점검할 자료 이름 (예: 우리역사넷 ‘신간회’ 해설)" aria-label="점검할 자료 이름"></div>
+    <div id="ck-list" style="margin-top:6px"></div>
+    <div id="ck-result" aria-live="polite"></div>
+    <div class="row" style="margin-top:8px"><button class="btn sec small" id="ck-reset">다른 자료 점검하기</button></div>
+  </div>
+  <div class="card">
+    <h3>채점 기준에서 신뢰성이 왜 중요할까?</h3>
+    <ul class="list">
+      <li>출처가 없거나 신뢰성이 떨어지면 <b>출처 점수 0점</b>입니다.</li>
+      <li>역사적 사실에 오류가 있으면 <b>항목당 1점씩 감점</b>됩니다. 날짜·인물·행위 주체를 두 곳 이상에서 확인하세요.</li>
+      <li>사건명은 <b>보편적 명칭(교과서 표기)</b>으로 써야 3점입니다. ② 사건 확인 탭을 이용하세요.</li>
+    </ul>
+  </div>
+</section>
+</main>
+<footer>
+  사건 목록 기준: 동아출판 『고등학교 한국사2』(2025). 링크는 2026년 11월에 작동을 확인했습니다. 사이트 주소가 바뀌어 열리지 않으면 선생님께 알려 주세요.
+</footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const UNITS={"I-1": "Ⅰ-1 일제의 식민지 지배 정책", "I-2": "Ⅰ-2 3·1 운동과 대한민국 임시 정부", "I-3": "Ⅰ-3 다양한 민족 운동의 전개", "I-4": "Ⅰ-4 사회·문화의 변화와 대중 운동", "I-5": "Ⅰ-5 일제 침략 전쟁과 광복을 위한 노력", "II-1": "Ⅱ-1 8·15 광복과 대한민국 정부의 수립", "II-2": "Ⅱ-2 6·25 전쟁과 분단의 고착화", "II-3": "Ⅱ-3 민주주의의 시련과 민주화 운동", "II-4": "Ⅱ-4 산업화와 사회·경제 및 일상의 변화", "III-1": "Ⅲ-1 6월 민주 항쟁 이후의 민주화", "III-2": "Ⅲ-2 외환 위기 극복과 사회·문화의 변동", "III-3": "Ⅲ-3 한반도 분단과 동아시아 갈등 극복 노력"};
+const EVENTS=[["국권 피탈", "1910", "I-1", ["경술국치", "한일 병합", "한국 병합", "국권 강탈", "강제 병합"], 14, ""], ["조선 총독부 설치", "1910", "I-1", ["총독부 설치"], 14, "E0052242|조선총독부"], ["무단 통치(헌병 경찰 통치)", "1910년대", "I-1", ["무단 통치", "헌병 경찰 통치", "헌병 경찰제"], 14, ""], ["회사령 공포", "1910", "I-1", ["회사령"], 15, "E0065503|회사령"], ["조선 태형령 시행", "1912", "I-1", ["태형령", "조선 태형령"], 14, ""], ["토지 조사 사업", "1910~1918", "I-1", ["토지 조사령", "토지조사사업"], 15, "E0059218|토지조사사업"], ["민족 분열 통치(‘문화 정치’)", "1920년대", "I-1", ["문화 정치", "문화통치", "민족 분열 통치", "보통 경찰제"], 16, ""], ["산미 증식 계획", "1920~1934", "I-1", ["산미증식계획"], 17, ""], ["회사령 폐지", "1920", "I-1", ["회사령 철폐"], 15, ""], ["치안 유지법 제정", "1925", "I-1", ["치안 유지법", "치안유지법"], 13, "E0066841|치안유지법"], ["독립 의군부 조직", "1912", "I-2", ["독립 의군부", "독립의군부"], 20, ""], ["대한 광복회 조직", "1915", "I-2", ["대한 광복회", "대한광복회"], 20, "E0014922|대한광복회"], ["신흥 강습소 설립", "1911", "I-2", ["신흥 강습소", "신흥 무관 학교", "신흥무관학교", "경학사"], 20, "E0033613|신흥무관학교"], ["대한 광복군 정부 수립", "1914", "I-2", ["대한 광복군 정부"], 20, "E0014921|대한광복군정부"], ["대한인 국민회 결성", "1910", "I-2", ["대한인 국민회", "대한인국민회"], 21, "E0015169|대한인국민회"], ["신한청년당 결성·파리 강화 회의 대표 파견", "1918~1919", "I-2", ["신한청년당", "파리 강화 회의 대표 파견", "김규식 파견"], 22, ""], ["2·8 독립 선언", "1919", "I-2", ["2.8 독립 선언", "28 독립선언", "이팔 독립 선언"], 22, "E0046354|2·8독립선언"], ["3·1 운동", "1919", "I-2", ["3.1 운동", "31운동", "삼일 운동", "삼일운동", "3·1 만세 운동", "기미 독립 운동"], 23, "E0026772|3·1운동"], ["제암리 사건", "1919", "I-2", ["제암리 학살", "제암리"], 23, ""], ["대한민국 임시 정부 수립", "1919", "I-2", ["임시 정부 수립", "임시정부", "상하이 임시 정부", "대한민국 임시정부"], 26, ""], ["연통제·교통국 조직", "1919", "I-2", ["연통제", "교통국"], 26, "E0036949|연통제"], ["구미 위원부 설치", "1919", "I-2", ["구미 위원부", "구미위원부"], 27, "E0005776|구미위원부"], ["국민 대표 회의 개최", "1923", "I-2", ["국민 대표 회의", "국민대표회의"], 27, "E0006294|국민대표회의"], ["이승만 대통령 탄핵(임시 정부)", "1925", "I-2", ["이승만 탄핵", "임시 정부 대통령 탄핵"], 26, ""], ["봉오동 전투", "1920", "I-3", ["봉오동"], 30, "E0023974|봉오동전투"], ["청산리 대첩", "1920", "I-3", ["청산리 전투", "청산리"], 30, "E0056468|청산리대첩"], ["간도 참변", "1920", "I-3", ["경신참변", "간도참변"], 31, "E0002635|경신참변"], ["자유시 참변", "1921", "I-3", ["자유시 사변", "흑하 사변"], 31, "E0072193|자유시사변"], ["3부(참의부·정의부·신민부) 성립", "1923~1925", "I-3", ["3부", "참의부", "정의부", "신민부"], 31, "E0050766|정의부"], ["미쓰야 협정", "1925", "I-3", ["미쓰야협정"], 30, ""], ["의열단 결성", "1919", "I-3", ["의열단"], 32, "E0043334|의열단"], ["김상옥 의거", "1923", "I-3", ["김상옥", "종로 경찰서 폭탄"], 33, "E0009358|김상옥"], ["나석주 의거", "1926", "I-3", ["나석주", "동양 척식 주식회사 폭탄"], 33, "E0011382|나석주"], ["한인 애국단 결성", "1931", "I-3", ["한인 애국단", "한인애국단"], 32, "E0061905|한인애국단"], ["이봉창 의거", "1932", "I-3", ["이봉창"], 32, "E0044475|이봉창"], ["윤봉길 의거", "1932", "I-3", ["윤봉길", "훙커우 공원 의거", "홍커우 공원"], 32, "E0042345|윤봉길"], ["만보산 사건", "1931", "I-3", ["만보산"], 32, "E0017600|만보산사건"], ["물산 장려 운동", "1920~", "I-3", ["조선 물산 장려회", "물산장려운동"], 34, "E0052021|조선물산장려회"], ["민립 대학 설립 운동", "1922~", "I-3", ["조선 민립 대학 기성회", "민립대학"], 35, "E0020095|민립대학설립운동"], ["문자 보급 운동", "1929~", "I-3", ["문맹 퇴치 운동", "한글 보급 운동"], 35, "E0076100|문자보급운동"], ["브나로드 운동", "1931~", "I-3", ["브나로드"], 35, "E0025066|브나로드운동"], ["조선 공산당 결성", "1925", "I-3", ["조선 공산당"], 36, "E0051920|조선공산당"], ["정우회 선언", "1926", "I-3", ["정우회"], 36, "E0050639|정우회"], ["민족 유일당 운동", "1926~", "I-3", ["유일당 운동"], 31, "E0020265|민족유일당운동"], ["6·10 만세 운동", "1926", "I-3", ["6.10 만세 운동", "610 만세운동", "육십 만세 운동"], 38, "E0042124|6·10만세운동"], ["신간회 결성", "1927", "I-3", ["신간회"], 37, "E0032606|신간회"], ["광주 학생 항일 운동", "1929", "I-3", ["광주 학생 운동", "광주학생항일운동", "광주 학생 독립운동"], 37, "E0005301|광주학생운동"], ["신간회 해소", "1931", "I-3", ["신간회 해체"], 37, "E0032606|신간회"], ["농촌 진흥 운동", "1932~", "I-4", ["농촌진흥운동"], 43, ""], ["암태도 소작 쟁의", "1923~1924", "I-4", ["암태도"], 44, "E0035164|암태도 소작쟁의"], ["원산 총파업", "1929", "I-4", ["원산 노동자 총파업"], 45, "E0040696|원산총파업"], ["근우회 창립", "1927", "I-4", ["근우회"], 46, "E0007442|근우회"], ["소년 운동(어린이날 제정)", "1922~1923", "I-4", ["어린이날", "소년 운동", "방정환"], 47, "E0035938|어린이날"], ["조선 형평사 창립·형평 운동", "1923", "I-4", ["형평 운동", "형평사", "조선 형평사"], 47, "E0063568|형평운동"], ["경성 제국 대학 설립", "1924", "I-4", ["경성 제국 대학"], 34, "E0002583|경성제국대학"], ["조선어 학회 사건", "1942", "I-4", ["조선어 학회", "조선어학회"], 48, "E0052129|조선어학회 사건"], ["진단 학회 조직", "1934", "I-4", ["진단 학회", "진단학회"], 48, "E0054620|진단학회"], ["한글 맞춤법 통일안 제정", "1933", "I-4", ["한글 맞춤법 통일안", "맞춤법 통일안"], 48, "E0061514|한글맞춤법통일안"], ["만주 사변", "1931", "I-5", ["만주사변"], 53, ""], ["중·일 전쟁", "1937", "I-5", ["중일 전쟁", "중일전쟁"], 53, ""], ["아시아·태평양 전쟁", "1941", "I-5", ["태평양 전쟁", "태평양전쟁", "아시아 태평양 전쟁"], 53, ""], ["국가 총동원법 공포", "1938", "I-5", ["국가 총동원법", "국가총동원법"], 54, "E0006142|국가총동원법"], ["황국 신민 서사 제정", "1937", "I-5", ["황국 신민 서사", "황국 신민화 정책", "민족 말살 정책"], 56, "E0076120|황국신민서사"], ["일본식 성명 강요(창씨개명)", "1940", "I-5", ["창씨개명", "창씨 개명", "일본식 성명"], 54, ""], ["징용·징병 등 인력 수탈", "1939~1945", "I-5", ["강제 징용", "징용", "징병", "국민 징용령", "강제 동원"], 55, ""], ["일본군 ‘위안부’ 강제 동원", "1930년대~1945", "I-5", ["위안부", "일본군 위안부", "일본군 성노예"], 55, "E0050509|일본군 ‘위안부’"], ["한국 독립군·조선 혁명군의 한중 연합 작전", "1932~1933", "I-5", ["한국 독립군", "조선 혁명군", "쌍성보 전투", "대전자령 전투", "영릉가 전투", "한중 연합 작전"], 60, "E0052267|조선혁명군"], ["보천보 전투", "1937", "I-5", ["보천보"], 61, "E0023553|보천보전투"], ["조선 민족 혁명당 창당", "1935", "I-5", ["조선 민족 혁명당", "민족 혁명당"], 61, "E0052042|조선민족혁명당"], ["조선 의용대 결성", "1938", "I-5", ["조선 의용대", "조선의용대"], 61, "E0052178|조선의용대"], ["한국 독립당 결성", "1940", "I-5", ["한국 독립당"], 62, "E0051987|한국독립당"], ["한국광복군 창설", "1940", "I-5", ["한국광복군", "광복군", "한국 광복군"], 62, "E0005134|한국광복군"], ["대한민국 건국 강령 발표", "1941", "I-5", ["건국 강령", "대한민국 건국 강령", "삼균주의"], 63, "E0026495|삼균주의"], ["대일 선전 성명", "1941", "I-5", ["대일 선전 포고", "대일선전성명"], 62, ""], ["화북 조선 독립 동맹 결성", "1942", "I-5", ["조선 독립 동맹", "화북 조선 독립 동맹", "조선 의용군"], 64, "E0078258|화북조선독립동맹"], ["조선 건국 동맹 조직", "1944", "I-5", ["조선 건국 동맹", "건국 동맹"], 64, "E0073803|조선건국동맹"], ["국내 진공 작전 계획", "1945", "I-5", ["국내 진공 작전", "국내진공작전"], 63, ""], ["카이로 회담(카이로 선언)", "1943", "I-5", ["카이로 선언", "카이로 회담"], 65, ""], ["포츠담 선언", "1945", "I-5", ["포츠담 회담", "포츠담"], 65, "E0066870|포츠담 선언"], ["8·15 광복", "1945", "II-1", ["광복", "8.15 광복", "해방", "815 광복"], 74, "E0059769|8·15광복"], ["조선 건국 준비 위원회 설립", "1945", "II-1", ["조선 건국 준비 위원회", "건준", "건국 준비 위원회"], 74, "E0051909|조선건국준비위원회"], ["조선 인민 공화국 선포", "1945", "II-1", ["조선 인민 공화국"], 74, "E0052184|조선인민공화국"], ["38도선 설정과 미·소 군정", "1945", "II-1", ["38도선", "미군정", "군정 실시", "소련군 진주"], 75, ""], ["모스크바 3국 외상 회의", "1945", "II-1", ["모스크바 삼상 회의", "모스크바 3상 회의", "신탁 통치 결정"], 76, "E0066402|모스크바 삼상회의"], ["신탁 통치 반대 운동(반탁 운동)", "1945~1946", "II-1", ["반탁 운동", "신탁 통치", "찬탁", "반탁"], 76, "E0033478|신탁통치 반대운동"], ["제1차 미·소 공동 위원회", "1946", "II-1", ["미소 공동 위원회", "미·소 공동 위원회", "미소공위"], 76, "E0019961|미소공동위원회"], ["이승만 정읍 발언", "1946", "II-1", ["정읍 발언"], 78, "E0073452|정읍발언"], ["좌우 합작 운동(좌우 합작 7원칙)", "1946~1947", "II-1", ["좌우 합작", "좌우 합작 7원칙", "좌우 합작 위원회"], 78, "E0053123|좌우합작위원회"], ["유엔 총회의 남한 총선거 결정", "1947~1948", "II-1", ["유엔 한국 임시 위원단", "남한 단독 선거", "단독 선거"], 79, ""], ["제주 4·3 사건", "1948", "II-1", ["4·3 사건", "제주 4.3", "43 사건", "제주4·3"], 79, "E0051439|제주4·3사건"], ["남북 협상", "1948", "II-1", ["남북 지도자 회의", "김구 김규식 방북"], 79, "E0011936|남북협상"], ["5·10 총선거", "1948", "II-1", ["5.10 총선거", "510 총선거", "제헌 국회 선거", "총선거"], 82, ""], ["제헌 헌법 제정", "1948", "II-1", ["제헌 헌법", "제헌 국회"], 82, "E0073413|제헌국회"], ["대한민국 정부 수립", "1948", "II-1", ["정부 수립", "대한민국 수립"], 82, ""], ["북한 정권 수립", "1948", "II-1", ["조선 민주주의 인민 공화국 수립", "북한 정부 수립"], 82, ""], ["북조선 임시 인민 위원회 조직·토지 개혁(북한)", "1946", "II-1", ["북조선 임시 인민 위원회", "북한 토지 개혁"], 83, "E0070131|북조선임시인민위원회"], ["여수·순천 10·19 사건", "1948", "II-1", ["여순 사건", "여수 순천 사건", "여수·순천"], 84, "E0036410|여수·순천 10·19사건"], ["반민족 행위 처벌법 제정(반민 특위)", "1948~1949", "II-1", ["반민족 행위 처벌법", "반민 특위", "반민특위", "반민족 행위 특별 조사 위원회", "친일파 청산"], 84, "E0021477|반민족행위처벌법"], ["농지 개혁", "1949~1950", "II-1", ["농지 개혁법", "농지개혁"], 85, "E0013191|농지개혁"], ["6·25 전쟁", "1950~1953", "II-2", ["한국 전쟁", "6.25 전쟁", "625 전쟁", "육이오 전쟁", "한국전쟁"], 89, "E0042143|한국전쟁"], ["인천 상륙 작전", "1950", "II-2", ["인천상륙작전"], 88, "E0047085|인천상륙작전"], ["국민 보도 연맹 사건", "1950", "II-2", ["보도 연맹", "국민 보도 연맹"], 84, "E0006301|국민보도연맹(사건)"], ["거창 사건", "1951", "II-2", ["거창 양민 학살", "거창 민간인 학살"], 92, "E0001927|거창사건"], ["정전 협정 체결", "1953", "II-2", ["정전 협정", "휴전 협정", "휴전"], 89, ""], ["한·미 상호 방위 조약 체결", "1953", "II-2", ["한미 상호 방위 조약", "한·미 상호 방위 조약"], 89, "E0061616|한미상호방위조약"], ["발췌 개헌", "1952", "II-2", ["발췌개헌"], 92, "E0021623|발췌개헌"], ["평화선 선언(인접 해양 주권 선언)", "1952", "III-3", ["평화선", "인접 해양에 대한 주권에 관한 선언"], 150, "E0060099|평화선"], ["사사오입 개헌", "1954", "II-2", ["사사오입", "4사5입 개헌"], 93, "E0025681|사사오입 개헌"], ["진보당 사건", "1958", "II-2", ["조봉암 사건", "진보당"], 92, "E0054703|진보당사건"], ["천리마 운동(북한)", "1956~", "II-2", ["천리마 운동"], 95, "E0055845|천리마운동"], ["2·28 민주 운동", "1960", "II-3", ["2.28 민주 운동", "228 민주운동", "대구 2·28"], 98, ""], ["3·15 부정 선거", "1960", "II-3", ["3.15 부정 선거", "315 부정선거", "3·15 의거", "마산 의거"], 98, "E0026771|3·15부정선거"], ["4·19 혁명", "1960", "II-3", ["4.19 혁명", "419 혁명", "사일구 혁명", "4월 혁명", "4·19"], 99, "E0025902|4·19혁명"], ["장면 내각 출범", "1960", "II-3", ["장면 정부", "제2 공화국"], 98, ""], ["5·16 군사 정변", "1961", "II-3", ["5.16 군사 정변", "516 군사정변", "5·16 쿠데타", "5·16 군사 쿠데타", "5·16"], 100, ""], ["6·3 시위", "1964", "II-3", ["6·3 항쟁", "한일 회담 반대 시위", "6.3 시위"], 100, "E0042107|6·3항쟁"], ["한·일 협정 체결", "1965", "II-3", ["한일 협정", "한일 기본 조약", "한·일 국교 정상화", "한일 국교 정상화"], 100, "E0061915|한일기본조약"], ["베트남 전쟁 국군 파병", "1964~1973", "II-3", ["베트남 파병", "월남 파병", "브라운 각서"], 101, ""], ["3선 개헌", "1969", "II-3", ["삼선 개헌"], 101, "E0026643|삼선개헌"], ["10월 유신(유신 헌법)", "1972", "II-3", ["유신", "유신 헌법", "10월 유신", "유신 체제"], 102, "E0032425|10월유신"], ["개헌 청원 100만 인 서명 운동", "1973", "II-3", ["개헌 청원 백만인 서명 운동", "100만인 서명 운동"], 102, ""], ["긴급 조치 발동", "1974~1979", "II-3", ["긴급 조치", "대통령 긴급 조치"], 102, "E0008507|긴급조치"], ["2차 인혁당 사건", "1975", "II-3", ["인혁당 사건", "인민 혁명당 재건위 사건", "인혁당 재건위"], 102, ""], ["3·1 민주 구국 선언", "1976", "II-3", ["민주 구국 선언"], 103, ""], ["YH 무역 사건", "1979", "II-3", ["YH 사건", "와이에이치 무역"], 103, ""], ["부·마 민주 항쟁", "1979", "II-3", ["부마 민주 항쟁", "부마 항쟁", "부마항쟁", "부·마 항쟁"], 103, "E0024157|부마민주항쟁"], ["10·26 사태", "1979", "II-3", ["10.26 사태", "1026 사태", "박정희 피살"], 103, "E0034013|10·26사태"], ["12·12 군사 반란", "1979", "II-3", ["12.12 사태", "1212 군사반란", "12·12 사태", "12·12 쿠데타"], 104, ""], ["서울의 봄", "1980", "II-3", ["서울의봄"], 104, ""], ["5·18 민주화 운동", "1980", "II-3", ["5.18 민주화 운동", "518 민주화운동", "광주 민주화 운동", "5·18 광주 민주화 운동", "광주 사태", "5·18"], 104, "E0038496|5·18광주민주화운동"], ["국가 보위 비상 대책 위원회 설치", "1980", "II-3", ["국보위", "국가 보위 비상 대책 위원회"], 106, "E0006133|국가보위비상대책위원회"], ["삼청 교육대", "1980", "II-3", ["삼청교육대"], 106, "E0066508|삼청교육대"], ["부산 미국 문화원 방화 사건", "1982", "II-3", ["부산 미문화원 방화"], 107, ""], ["박종철 고문치사 사건", "1987", "II-3", ["박종철", "박종철 고문 치사"], 106, "E0068065|박종철 고문치사 사건"], ["4·13 호헌 조치", "1987", "II-3", ["호헌 조치", "4.13 호헌 조치"], 107, ""], ["6월 민주 항쟁", "1987", "II-3", ["6월 항쟁", "6월 민주항쟁", "유월 민주 항쟁", "이한열"], 108, "E0068343|6월항쟁"], ["6·29 선언", "1987", "II-3", ["6.29 선언", "629 선언", "6·29 민주화 선언"], 108, "E0042141|6·29민주화선언"], ["제1차 경제 개발 5개년 계획", "1962~", "II-4", ["경제 개발 5개년 계획", "경제개발 5개년 계획"], 112, ""], ["서독 광부·간호사 파견", "1963~", "II-4", ["파독 광부", "파독 간호사", "서독 파견"], 112, "E0068929|파독 광부"], ["경부 고속 도로 개통", "1970", "II-4", ["경부 고속 국도", "경부고속도로"], 112, "E0002460|경부고속도로"], ["새마을 운동", "1970~", "II-4", ["새마을운동"], 115, "E0027443|새마을운동"], ["전태일 분신", "1970", "II-4", ["전태일", "청계 피복 노동조합"], 114, "E0068917|전태일"], ["와우아파트 붕괴 참사", "1970", "II-4", ["와우 아파트"], 115, ""], ["광주 대단지 사건", "1971", "II-4", ["광주대단지", "성남 광주 대단지"], 115, ""], ["동일방직 사건", "1972~1978", "II-4", ["동일 방직"], 114, ""], ["8·3 조치", "1972", "II-4", ["8.3 조치", "사채 동결"], 112, "E0075707|8·3조치"], ["포항 제철소 준공", "1973", "II-4", ["포항 제철", "포스코"], 112, "E0081021|포항제철소"], ["석유 파동", "1973·1978", "II-4", ["오일 쇼크", "제1차 석유 파동", "제2차 석유 파동"], 113, "E0068181|석유파동"], ["함평 고구마 사건", "1976~1978", "II-4", ["함평 고구마"], 115, ""], ["수출 100억 달러 돌파", "1977", "II-4", ["수출 100억 달러"], 112, ""], ["3저 호황", "1986~1988", "II-4", ["삼저 호황"], 113, "E0073420|3저 호황"], ["노동자 대투쟁", "1987", "II-4", ["7·8·9월 노동자 대투쟁", "87년 노동자 대투쟁"], 137, "E0073744|87년 노동자대투쟁"], ["원진 레이온 사건", "1988", "II-4", ["원진레이온"], 116, ""], ["서울 올림픽 대회 개최", "1988", "III-1", ["서울 올림픽", "88 올림픽"], 108, "E0028046|서울올림픽대회"], ["낙동강 페놀 오염 사태", "1991", "II-4", ["페놀 사태", "낙동강 페놀"], 117, ""], ["텔레비전 방송 시작", "1956", "II-4", ["TV 방송 시작"], 118, ""], ["국민 교육 헌장 제정", "1968", "II-4", ["국민교육헌장"], 101, "E0006288|국민교육헌장"], ["프로야구 개막", "1982", "II-4", ["프로 야구"], 118, "E0060462|프로야구"], ["3당 합당", "1990", "III-1", ["삼당 합당", "민주 자유당 창당"], 128, "E0080747|3당합당"], ["5·18 및 5공 비리 청문회", "1988", "III-1", ["청문회", "5공 청문회", "광주 청문회"], 128, ""], ["북방 외교(한·소 수교, 한·중 수교)", "1990~1992", "III-1", ["북방 외교", "한소 수교", "한중 수교"], 128, "E0066460|북방외교"], ["금융 실명제 실시", "1993", "III-1", ["금융 실명제", "금융실명제"], 128, "E0007935|금융실명제"], ["역사 바로 세우기(조선 총독부 청사 철거)", "1995", "III-1", ["역사 바로 세우기", "조선 총독부 청사 철거", "전두환 노태우 처벌"], 128, "E0080725|역사바로세우기"], ["5·18 민주화 운동 등에 관한 특별법 제정", "1995", "III-1", ["5·18 특별법", "518 특별법"], 105, "E0078661|5·18특별법"], ["지방 자치제 전면 실시(제1회 전국 동시 지방 선거)", "1995", "III-1", ["지방 자치제", "지방 자치", "지방 선거", "전국 동시 지방 선거"], 128, "E0054202|지방자치"], ["평화적 정권 교체(김대중 정부 출범)", "1997~1998", "III-1", ["정권 교체", "김대중 정부", "국민의 정부", "김대중 대통령 취임"], 129, ""], ["여성부 신설·국가 인권 위원회 설치", "2001", "III-1", ["여성부", "국가 인권 위원회", "국가인권위원회"], 129, "E0067798|국가인권위원회"], ["경제 협력 개발 기구(OECD) 가입", "1996", "III-2", ["OECD 가입", "경제 협력 개발 기구"], 128, "E0002801|경제협력개발기구"], ["외환 위기", "1997", "III-2", ["IMF", "IMF 외환 위기", "IMF 사태", "국제 통화 기금 구제 금융", "IMF 구제 금융", "외환위기"], 136, "E0068313|외환위기"], ["금 모으기 운동", "1998", "III-2", ["금모으기"], 137, "E0080908|금모으기운동"], ["노사정 위원회 구성", "1998", "III-2", ["노사정 위원회", "정리 해고제"], 137, ""], ["국민 기초 생활 보장법 제정", "1999", "III-2", ["국민 기초 생활 보장법", "기초 생활 보장"], 140, "E0067851|국민기초생활보장법"], ["외환 위기 극복(IMF 지원금 조기 상환)", "2001", "III-2", ["IMF 조기 상환", "외환 위기 극복"], 129, ""], ["한·일 월드컵 대회 개최", "2002", "III-2", ["2002 월드컵", "한일 월드컵"], 138, ""], ["7·4 남북 공동 성명", "1972", "III-3", ["7.4 남북 공동 성명", "74 남북공동성명"], 102, "E0058478|7·4남북공동성명"], ["사회주의 헌법 제정·유일사상 체계(북한)", "1972", "III-3", ["사회주의 헌법", "유일사상 체계", "주체사상"], 146, "E0041769|유일사상체계"], ["합영법 제정(북한)", "1984", "III-3", ["합영법"], 147, ""], ["남북한 유엔 동시 가입", "1991", "III-3", ["유엔 동시 가입"], 148, ""], ["남북 기본 합의서 채택", "1991", "III-3", ["남북 기본 합의서"], 148, "E0066313|남북기본합의서"], ["한반도 비핵화 공동 선언", "1991~1992", "III-3", ["비핵화 공동 선언"], 148, ""], ["금강산 관광 시작", "1998", "III-3", ["금강산 관광", "햇볕 정책", "대북 화해 협력 정책"], 149, "E0066919|대북화해협력정책"], ["남북 정상 회담과 6·15 남북 공동 선언", "2000", "III-3", ["6·15 남북 공동 선언", "6.15 남북 공동 선언", "615 공동선언", "제1차 남북 정상 회담", "남북 정상 회담"], 129, ""], ["일본 역사 교과서 왜곡", "2001", "III-3", ["왜곡 교과서", "일본 교과서 왜곡", "역사 교과서 왜곡"], 152, ""], ["중국의 동북 공정", "2002~", "III-3", ["동북 공정", "동북공정"], 153, "E0066377|동북공정"], ["김학순의 일본군 ‘위안부’ 피해 증언", "1991", "III-3", ["김학순", "위안부 증언"], 58, "E0010938|김학순"]];
+const OUTS=[["갑신정변", "1884", "before"], ["동학 농민 운동", "1894", "before"], ["갑오개혁", "1894", "before"], ["을미사변", "1895", "before"], ["아관 파천", "1896", "before"], ["독립 협회", "1896", "before"], ["대한 제국 수립", "1897", "before"], ["을사늑약", "1905", "before"], ["헤이그 특사", "1907", "before"], ["국채 보상 운동", "1907", "before"], ["신민회", "1907", "before"], ["정미의병", "1907", "before"], ["안중근 의거", "1909", "before"], ["강화도 조약", "1876", "before"], ["임오군란", "1882", "before"], ["을미의병", "1895", "before"], ["노무현 정부 출범", "2003", "after"], ["개성 공단", "2003~", "after"], ["노무현 대통령 탄핵 소추", "2004", "after"], ["10·4 남북 정상 선언", "2007", "after"], ["천안함 피격 사건", "2010", "after"], ["연평도 포격전", "2010", "after"], ["세월호 참사", "2014", "after"], ["촛불 집회", "2016~2017", "after"], ["박근혜 대통령 탄핵", "2017", "after"], ["판문점 선언", "2018", "after"], ["코로나19", "2020", "after"], ["한·미 자유 무역 협정(FTA)", "2007", "after"], ["이명박 정부", "2008", "after"], ["문재인 정부", "2017", "after"], ["윤석열 정부", "2022", "after"]];
+
+const SITES=[
+ {g:"기본 (먼저 보세요)",n:"우리역사넷",o:"국사편찬위원회",u:"https://contents.history.go.kr/front/search/result.do?q=",h:"https://contents.history.go.kr/",d:"교과서 용어 해설, 사료로 본 한국사, 신편 한국사",t:"고등학생이 읽기 가장 쉬워요. ‘교과서 용어 해설’ 결과부터 보세요."},
+ {g:"기본 (먼저 보세요)",n:"한국사데이터베이스",o:"국사편찬위원회",u:"https://db.history.go.kr/search/searchTotalResult.do?totalWord=",h:"https://db.history.go.kr/",d:"사료 원문·번역문, 근현대 신문·잡지, 신편 한국사",t:"자료가 아주 많아요. 왼쪽 분류에서 ‘신편 한국사’나 ‘근대사연표’부터 골라 보세요."},
+ {g:"사전",n:"한국민족문화대백과사전",o:"한국학중앙연구원",u:"https://encykorea.aks.ac.kr/Article/Search?query=",h:"https://encykorea.aks.ac.kr/",d:"전문가가 쓴 항목별 해설",t:"항목 아래쪽 집필자·참고문헌을 확인하세요. 띄어쓰기 없이 검색하면 더 잘 찾아져요(예: 신간회, 6월항쟁)."},
+ {g:"기록물·자료관",n:"한국독립운동정보시스템",o:"독립기념관",u:"https://search.i815.or.kr/main/totalSearch.do?searchMenu=all&searchWord=",h:"https://search.i815.or.kr/",d:"독립운동 소장 자료·콘텐츠·간행물",t:"1910~1945년 독립운동 사건에 알맞아요."},
+ {g:"기록물·자료관",n:"공훈전자사료관",o:"국가보훈부",u:"https://e-gonghun.mpva.go.kr/diquest/Search.do?searchTerm=",h:"https://e-gonghun.mpva.go.kr/",d:"독립유공자 공적, 독립운동사 자료",t:"인물 중심 자료예요. 사건의 ‘행위 주체’를 확인할 때 좋아요."},
+ {g:"기록물·자료관",n:"오픈아카이브",o:"민주화운동기념사업회",u:"https://archives.kdemo.or.kr/search/total-search?QU=",h:"https://archives.kdemo.or.kr/",d:"민주화 운동 문서·사진·구술 기록",t:"4·19 혁명, 유신 반대, 5·18, 6월 민주 항쟁 등에 알맞아요."},
+ {g:"기록물·자료관",n:"국가기록원",o:"국가기록원",u:null,h:"https://www.archives.go.kr/",d:"정부 기록물, 사진·영상",t:"검색 결과로 바로 갈 수 없어요. ‘검색어 복사 후 열기’를 누르고 사이트 검색창에 붙여넣으세요."},
+ {g:"옛 신문",n:"대한민국 신문 아카이브",o:"국립중앙도서관",u:"https://www.nl.go.kr/newspaper/keyword_search.do?search_keyword=",h:"https://www.nl.go.kr/newspaper/",d:"1883년~1960년대 신문 기사",t:"1970년대 이후 사건은 검색되지 않아요."},
+ {g:"옛 신문",n:"네이버 뉴스 라이브러리",o:"네이버(신문사 지면 원문)",u:null,h:"https://newslibrary.naver.com/",d:"1920~1999년 신문 지면 원문",t:"신문 원문만 쓰세요(블로그·지식iN·카페는 사용 불가). 검색어를 복사해 붙여넣으세요."},
+ {g:"논문",n:"RISS",o:"한국교육학술정보원",u:"https://www.riss.kr/search/Search.do?isDetailSearch=N&searchGubun=true&viewYn=OP&query=",h:"https://www.riss.kr/",d:"국내 학술논문·학위논문",t:"‘무료’ 표시 논문부터 보세요. 논문은 ‘정기간행물’ 형식으로 출처를 써요."},
+ {g:"논문",n:"KCI",o:"한국연구재단",u:"https://www.kci.go.kr/kciportal/po/search/poTotalSearList.kci?poSearchBean.searType=all&poSearchBean.keyword=",h:"https://www.kci.go.kr/",d:"국내 학술지 논문",t:"대부분 원문을 무료로 볼 수 있어요."},
+ {g:"논문",n:"DBpia",o:"누리미디어",u:"https://www.dbpia.co.kr/search/topSearch?searchOption=all&query=",h:"https://www.dbpia.co.kr/",d:"국내 학술논문",t:"학교 안에서는 기관 인증으로 열람될 수 있어요. 검색 결과 위 ‘AI 브리핑’은 출처로 쓰지 마세요."},
+ {g:"논문",n:"국회전자도서관",o:"국회도서관",u:null,h:"https://www.nanet.go.kr/",d:"논문·단행본·국회 자료",t:"원문 보기에 프로그램 설치가 필요해 크롬북에서는 열리지 않을 수 있어요."}
+];
+
+const $=s=>document.querySelector(s);
+function el(tag,attrs,...kids){const e=document.createElement(tag);if(attrs)for(const k in attrs){if(k==="class")e.className=attrs[k];else if(k.startsWith("on"))e.addEventListener(k.slice(2),attrs[k]);else e.setAttribute(k,attrs[k]);}for(const c of kids){if(c==null)continue;e.append(c.nodeType?c:String(c));}return e;}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),1800);}
+async function copyText(s){try{await navigator.clipboard.writeText(s);return true}catch(e){const ta=el("textarea");ta.value=s;document.body.append(ta);ta.select();let ok=false;try{ok=document.execCommand("copy")}catch(_){}ta.remove();return ok}}
+
+/* 탭 */
+const tabs=[...document.querySelectorAll('[role=tab]')];
+function showTab(id){tabs.forEach(t=>{const on=t.id===id;t.setAttribute("aria-selected",on);document.getElementById(t.getAttribute("aria-controls")).hidden=!on;});window.scrollTo(0,0);}
+tabs.forEach(t=>t.addEventListener("click",()=>showTab(t.id)));
+
+/* 정규화·매칭 */
+const norm=s=>(s||"").toLowerCase().replace(/[\s·ㆍ・.\-‘’'"“”()（）\[\]]/g,"");
+const stripSuffix=s=>s.replace(/(설치|공포|시행|조직|결성|설립|수립|창립|창당|창설|발표|제정|개최|체결|선포|실시|발동|준공|개통|구성|신설|채택|시작|계획|파견|사건|운동)$/,"");
+const EV=EVENTS.map(([n,y,u,a,p,ek],i)=>({i,n,y,u,a,p,ek,keys:[n,n.replace(/\(.*?\)/g,""),...a].map(norm)}));
+function bigrams(s){const b=new Set();for(let i=0;i<s.length-1;i++)b.add(s.slice(i,i+2));return b;}
+function sim(a,b){if(!a||!b)return 0;const A=bigrams(a),B=bigrams(b);if(!A.size||!B.size)return 0;let x=0;A.forEach(g=>{if(B.has(g))x++});return 2*x/(A.size+B.size);}
+function findEvent(q){
+  const nq=norm(q); if(!nq) return {type:"empty"};
+  for(const e of EV){ if(e.keys.includes(nq)) return {type:"exact",e}; }
+  const nqs=norm(stripSuffix(q.trim()));
+  for(const e of EV){ if(e.keys.some(k=>k===nqs||stripSuffix(k)===nqs)) return {type:"exact",e}; }
+  for(const [n,y,w] of OUTS){ const k=norm(n); if(k===nq||k===nqs||(nq.length>=3&&(k.includes(nq)||nq.includes(k)))||(nq.length>=2&&k.startsWith(nq))) return {type:"out",n,y,w}; }
+  const scored=EV.map(e=>({e,s:Math.max(...e.keys.map(k=>Math.max(sim(k,nq),(k.includes(nq)&&nq.length>=2)?0.75:0)))})).filter(x=>x.s>=0.34).sort((a,b)=>b.s-a.s).slice(0,4);
+  return {type:"none",cands:scored.map(x=>x.e)};
+}
+
+/* ① 자료 검색 */
+function renderSites(){
+  const q=$("#q").value.trim();
+  const box=$("#sites"); box.textContent="";
+  let g=null, grid=null;
+  for(const s of SITES){
+    if(s.g!==g){g=s.g;box.append(el("div",{class:"group-title"},g));grid=el("div",{class:"grid"});box.append(grid);}
+    const card=el("div",{class:"site"},
+      el("div",null,el("b",null,s.n)," ",el("span",{class:"org"},"· "+s.o)),
+      el("div",{style:"font-size:.92rem"},s.d),
+      el("div",{class:"tip"},"💡 "+s.t));
+    const act=el("div",{class:"actions"});
+    if(s.u){
+      const a=el("a",{class:"go",href:q?s.u+encodeURIComponent(q):s.h,target:"_blank",rel:"noopener"},q?"검색 결과 열기 ↗":"사이트 열기 ↗");
+      act.append(a);
+    }else{
+      const a=el("a",{class:"go copy",href:s.h,target:"_blank",rel:"noopener"},q?"검색어 복사 후 열기 ↗":"사이트 열기 ↗");
+      a.addEventListener("click",()=>{if(q){copyText(q);toast("검색어를 복사했어요. 사이트 검색창에 붙여넣으세요(Ctrl+V).");}});
+      act.append(a);
+    }
+    card.append(act); grid.append(card);
+  }
+}
+function searchHint(){
+  const q=$("#q").value.trim(); const box=$("#q-hint"); box.textContent="";
+  if(!q){renderSites();return;}
+  const r=findEvent(q);
+  if(r.type==="exact"){
+    const e=r.e;
+    box.append(el("div",{class:"notice ok"},"✔ 교과서 사건입니다: ",el("b",null,e.n)," (",e.y,") · ",UNITS[e.u]," · 교과서 ",e.p?e.p+"쪽":"", " — 교과서 표기로 검색하면 더 정확해요."));
+  }else if(r.type==="out"){
+    box.append(el("div",{class:"notice bad"},"⚠ ‘",r.n,"’(",r.y,")은(는) 조사 범위(1910~2003. 2.) ",r.w==="before"?"이전":"이후"," 사건입니다. 선정하면 사건별 50% 감점돼요."));
+  }
+  renderSites();
+}
+$("#q-go").addEventListener("click",searchHint);
+$("#q").addEventListener("keydown",e=>{if(e.key==="Enter")searchHint();});
+$("#q").addEventListener("input",()=>{clearTimeout(searchHint._t);searchHint._t=setTimeout(searchHint,350);});
+
+/* ② 사건 확인 */
+function eventCard(e){
+  const wrap=el("div",{class:"notice ok"});
+  wrap.append(el("div",null,"✔ 조사 범위 안의 교과서 사건입니다."));
+  wrap.append(el("div",{class:"result-name"},e.n));
+  wrap.append(el("div",null,"연도: ",el("b",null,e.y)," · ",UNITS[e.u]," · 동아출판 『한국사2』 ",el("b",null,e.p?e.p+"쪽":"")," 참고"));
+  if(e.n==="국권 피탈") wrap.append(el("div",{class:"notice warn",style:"margin:8px 0 0"},"이 사건은 조사 범위의 시작점(경술국치)입니다. 선정해도 되는지 선생님께 먼저 확인하세요."));
+  if(e.a.length) wrap.append(el("div",{class:"muted",style:"margin-top:4px"},"다른 이름: "+e.a.slice(0,5).join(", ")+" → 사전조사서에는 위의 교과서 표기를 쓰세요."));
+  const links=el("div",{class:"row",style:"margin-top:10px"});
+  const kw=e.n.replace(/\(.*?\)/g,"").split("·")[0].trim();
+  if(e.ek){const [id,title]=e.ek.split("|");links.append(el("a",{class:"btn",href:"https://encykorea.aks.ac.kr/Article/"+id,target:"_blank",rel:"noopener",style:"text-decoration:none;color:#fff;background:var(--ok);padding:8px 14px;border-radius:8px"},"한국민족문화대백과 ‘"+title+"’ ↗"));}
+  links.append(el("a",{href:"https://contents.history.go.kr/front/search/result.do?q="+encodeURIComponent(kw),target:"_blank",rel:"noopener",style:"text-decoration:none;color:var(--accent);background:#fff;padding:8px 14px;border-radius:8px;border:1px solid var(--line)"},"우리역사넷에서 찾기 ↗"));
+  links.append(el("a",{href:"https://db.history.go.kr/search/searchTotalResult.do?totalWord="+encodeURIComponent(kw),target:"_blank",rel:"noopener",style:"text-decoration:none;color:var(--accent);background:#fff;padding:8px 14px;border-radius:8px;border:1px solid var(--line)"},"한국사데이터베이스에서 찾기 ↗"));
+  const more=el("button",{class:"btn sec small",type:"button"},"① 자료 검색에서 더 찾기");
+  more.addEventListener("click",()=>{$("#q").value=kw;showTab("t-search");searchHint();});
+  links.append(more);
+  wrap.append(links);
+  return wrap;
+}
+function checkEvent(q){
+  const box=$("#ev-result"); box.textContent="";
+  const r=findEvent(q??$("#ev-q").value);
+  if(r.type==="empty") return;
+  if(r.type==="exact"){box.append(eventCard(r.e));return;}
+  if(r.type==="out"){
+    box.append(el("div",{class:"notice bad"},el("b",null,"⚠ 조사 범위 밖의 사건입니다. "),"‘"+r.n+"’(",r.y,")은(는) ",r.w==="before"?"경술국치(1910) 이전":"김대중 정부(2003. 2.) 이후"," 사건이에요. 선정하면 정상 채점 후 ",el("b",null,"사건별 50% 감점"),"됩니다."));
+    return;
+  }
+  const n=el("div",{class:"notice warn"},el("b",null,"교과서 사건 목록에서 찾지 못했어요. "),"띄어쓰기나 이름이 다를 수 있어요.");
+  if(r.cands.length){
+    n.append(el("div",{style:"margin-top:6px"},"혹시 이 사건인가요?"));
+    const row=el("div",{class:"row",style:"margin-top:6px"});
+    r.cands.forEach(e=>{const b=el("button",{class:"chip",type:"button"},e.n+" ("+e.y+")");b.addEventListener("click",()=>{$("#ev-q").value=e.n;checkEvent(e.n);});row.append(b);});
+    n.append(row);
+  }
+  n.append(el("div",{class:"muted",style:"margin-top:8px"},"목록에 없는 사건이라면 교과서에 나오는지, 1910~2003년 사이인지 선생님께 확인하세요."));
+  box.append(n);
+}
+$("#ev-go").addEventListener("click",()=>checkEvent());
+$("#ev-q").addEventListener("keydown",e=>{if(e.key==="Enter")checkEvent();});
+
+let unitFilter="all";
+function renderUnits(){
+  const box=$("#unit-chips");box.textContent="";
+  const opts=[["all","전체"],["I","Ⅰ 일제 식민 통치와 민족 운동"],["II","Ⅱ 대한민국의 발전"],["III","Ⅲ 오늘날의 대한민국"]];
+  opts.forEach(([k,l])=>{const b=el("button",{class:"chip",type:"button","aria-pressed":unitFilter===k},l);b.addEventListener("click",()=>{unitFilter=k;renderUnits();renderTable();});box.append(b);});
+}
+function renderTable(){
+  const tb=$("#ev-table tbody");tb.textContent="";
+  const list=EV.filter(e=>unitFilter==="all"||e.u.split("-")[0]===unitFilter);
+  $("#ev-count").textContent="("+list.length+"개)";
+  list.forEach(e=>{
+    const b=el("button",{class:"link",type:"button"},e.n);
+    b.addEventListener("click",()=>{$("#ev-q").value=e.n;checkEvent(e.n);$("#ev-result").scrollIntoView({behavior:"smooth",block:"center"});});
+    tb.append(el("tr",null,el("td",null,b),el("td",null,e.y),el("td",{class:"muted"},UNITS[e.u]),el("td",{class:"muted"},e.p?e.p+"쪽":"")));
+  });
+}
+
+/* ③ 출처 만들기 */
+const today=()=>{const d=new Date();return d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getDate()).padStart(2,"0")+".";};
+const fmtDate=v=>{if(!v)return "";const m=v.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[1]+"."+m[2]+"."+m[3]+".":v;};
+const isoToday=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+const WEB=SITES.map(s=>({o:s.o.replace(/\(.*\)/,"").trim(),n:s.n}));
+const CT={
+  book:{label:"도서",ex:"한홍구, 『사법부』, 돌베개, 2016",f:[["author","저자","예: 한홍구"],["title","책 제목","예: 사법부"],["pub","출판사","예: 돌베개"],["year","출판연도","예: 2016"]],
+    make:v=>[v.author,v.title&&"『"+v.title+"』",v.pub,v.year].filter(Boolean).join(", ")},
+  news:{label:"신문 기사",ex:"김창엽, 「코로나 이후, 공공의료 개혁의 핵심은 '사람'」, 『프레시안』, 2021.05.06.",f:[["author","기자","예: 김창엽"],["title","기사 제목",""],["paper","신문명","예: 동아일보"],["date","날짜","",'date']],
+    make:v=>[v.author,v.title&&"「"+v.title+"」",v.paper&&"『"+v.paper+"』",fmtDate(v.date)].filter(Boolean).join(", ")},
+  journal:{label:"정기 간행물(논문·잡지)",ex:"전인갑, 「제국에서 제국성 국민국가로(Ⅱ): 제국의 지배전략과 근대적 재구성」, 『중국학보』 66, 2012.",f:[["author","저자",""],["title","글(논문) 제목",""],["jname","간행물명","예: 역사와 실학"],["no","호","예: 57"],["year","발행연도","예: 2015"]],
+    make:v=>{const j=v.jname?"『"+v.jname+"』"+(v.no?" "+v.no:""):"";const s=[v.author,v.title&&"「"+v.title+"」",j,v.year].filter(Boolean).join(", ");return s&&v.year?s+".":s;}},
+  dict:{label:"지식백과",ex:"네이버, 한국민족문화대백과, 윤봉길, 2024.10.11.",f:[["portal","검색포털","예: 네이버"],["prov","제공처","예: 한국민족문화대백과"],["kw","검색어",""],["date","검색 날짜","","date"]],
+    make:v=>[v.portal,v.prov,v.kw,fmtDate(v.date)].filter(Boolean).join(", ")},
+  web:{label:"웹 DB(기관 사이트)",ex:"국사편찬위원회, 우리역사넷, 6월 민주 항쟁, 2026.11.12.",f:[["site","사이트","","site"],["kw","자료 제목(또는 검색어)",""],["date","검색 날짜","","date"]],
+    make:v=>{const s=WEB[v.site|0]||{};return [s.o,s.n,v.kw,fmtDate(v.date)].filter(Boolean).join(", ");}}
+};
+let ctype="web"; const cvals={};
+function renderCiteTypes(){
+  const box=$("#cite-types");box.textContent="";
+  for(const k in CT){const b=el("button",{class:"chip",type:"button","aria-pressed":ctype===k},CT[k].label);b.addEventListener("click",()=>{ctype=k;renderCiteTypes();renderCiteForm();});box.append(b);}
+}
+function renderCiteForm(){
+  const t=CT[ctype],box=$("#cite-form");box.textContent="";
+  cvals[ctype]=cvals[ctype]||{};const v=cvals[ctype];
+  t.f.forEach(([key,label,ph,kind])=>{
+    const id="cf-"+key;let inp;
+    if(kind==="site"){inp=el("select",{id});WEB.forEach((s,i)=>inp.append(el("option",{value:i},s.n+" ("+s.o+")")));inp.value=v[key]??"0";v[key]=inp.value;}
+    else if(kind==="date"){inp=el("input",{type:"date",id});inp.value=v[key]||isoToday();v[key]=inp.value;}
+    else{inp=el("input",{type:"text",id,placeholder:ph});inp.value=v[key]||"";}
+    inp.addEventListener("input",()=>{v[key]=inp.value;updateCite();});
+    inp.addEventListener("change",()=>{v[key]=inp.value;updateCite();});
+    box.append(el("label",{for:id},label),inp);
+  });
+  $("#cite-example").textContent="학교 예시: "+t.ex;
+  if(ctype==="dict") $("#cite-example").textContent+="  ※ 제공처가 신뢰할 수 있는 기관 사전(한국민족문화대백과 등)인지 꼭 확인하세요.";
+  updateCite();
+}
+function updateCite(){$("#cite-out").textContent=CT[ctype].make(cvals[ctype]||{});}
+let myList=[];try{myList=JSON.parse(localStorage.getItem("ks2-cites")||"[]")}catch(e){}
+function saveList(){try{localStorage.setItem("ks2-cites",JSON.stringify(myList))}catch(e){}}
+function renderList(){const ol=$("#cite-list");ol.textContent="";if(!myList.length){ol.append(el("li",{class:"muted"},"아직 담은 출처가 없어요."));return;}
+  myList.forEach((s,i)=>{const del=el("button",{class:"btn sec small",type:"button",style:"margin-left:8px"},"삭제");del.addEventListener("click",()=>{myList.splice(i,1);saveList();renderList();});ol.append(el("li",{style:"margin:4px 0"},s,del));});}
+$("#cite-add").addEventListener("click",()=>{const s=$("#cite-out").textContent;if(!s)return toast("먼저 칸을 채워 주세요.");myList.push(s);saveList();renderList();toast("목록에 담았어요.");});
+$("#cite-clear").addEventListener("click",()=>{if(myList.length&&confirm("목록을 모두 지울까요?")){myList=[];saveList();renderList();}});
+
+/* ④ 신뢰성 점검 */
+const CHECKS=[
+ ["자료를 만든 기관이나 저자가 분명하다.","누가 썼는지 모르는 글은 사실을 확인할 방법이 없어요. 기관명·집필자·기자 이름을 찾으세요."],
+ ["허용된 사이트(① 자료 검색 목록)나 도서·신문·논문에서 찾은 자료다.","나무위키·블로그·지식iN·유튜브·AI 답변은 사용할 수 없어요(감점)."],
+ ["날짜·인물·행위 주체 같은 내용이 교과서와 일치한다.","사실 오류는 항목당 1점 감점이에요. 교과서 해당 쪽과 비교하세요."],
+ ["다른 신뢰 자료 1개 이상에서 같은 내용을 다시 확인했다.","예: 우리역사넷에서 읽은 내용을 한국민족문화대백과에서 한 번 더 확인."],
+ ["출처를 학교 양식대로 기록했다.","③ 출처 만들기 탭에서 양식을 확인하고 사전조사서에 직접 적으세요."]
+];
+function renderChecks(){
+  const box=$("#ck-list");box.textContent="";
+  CHECKS.forEach(([t,w],i)=>{const id="ck"+i;const cb=el("input",{type:"checkbox",id});cb.addEventListener("change",ckResult);
+    box.append(el("div",{class:"check"},cb,el("label",{for:id},el("div",null,el("b",null,(i+1)+". "),t),el("div",{class:"why"},w))));});
+  ckResult();
+}
+function ckResult(){
+  const cbs=[...document.querySelectorAll("#ck-list input")];const miss=cbs.map((c,i)=>c.checked?null:i).filter(x=>x!==null);
+  const box=$("#ck-result");box.textContent="";const name=$("#ck-name").value.trim();
+  if(miss.length===cbs.length) return;
+  if(!miss.length){box.append(el("div",{class:"notice ok"},el("b",null,"✔ "+(name?"‘"+name+"’은(는) ":"")+"사전조사서에 써도 됩니다."),el("div",null,"출처를 잊지 말고 적으세요.")));return;}
+  const n=el("div",{class:"notice warn"},el("b",null,"아직 보완이 필요해요. "),"다음을 확인하세요:");
+  const ul=el("ul",{class:"list"});miss.forEach(i=>ul.append(el("li",null,CHECKS[i][0])));n.append(ul);
+  if(miss.includes(1)) n.append(el("div",{style:"margin-top:4px"},el("b",null,"2번이 해결되지 않으면 이 자료는 쓰지 마세요.")," ① 자료 검색에서 같은 내용을 다시 찾아보세요."));
+  box.append(n);
+}
+$("#ck-name").addEventListener("input",ckResult);
+$("#ck-reset").addEventListener("click",()=>{$("#ck-name").value="";renderChecks();$("#ck-name").focus();});
+
+/* 시작 */
+renderSites();renderUnits();renderTable();renderCiteTypes();renderCiteForm();renderList();renderChecks();
+</script>
+</body>
+</html>
